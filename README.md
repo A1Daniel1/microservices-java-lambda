@@ -1,31 +1,31 @@
-# Microservices with Java, AWS Lambda y API Gateway
+# Microservices with Java, AWS Lambda, and API Gateway
 
-Laboratorio de introducción a los microservicios con **Java** usando **AWS Lambda** y **Amazon API Gateway**.
+Introductory lab on microservices with **Java** using **AWS Lambda** and **Amazon API Gateway**.
 
-Se implementa un servicio REST que, partiendo del ejemplo clásico de calcular el cuadrado de un entero, evoluciona hacia el manejo de entradas y salidas más complejas mediante objetos POJO (JSON).
+It implements a REST service that, starting from the classic example of calculating the square of an integer, evolves into handling more complex inputs and outputs through POJO objects (JSON).
 
-## Contenido
+## Table of Contents
 
-- [Descripción](#descripción)
-- [Estructura del proyecto](#estructura-del-proyecto)
-- [Requisitos](#requisitos)
-- [Compilar y empaquetar](#compilar-y-empaquetar)
-- [Crear la función Lambda](#crear-la-función-lambda)
-- [Exponer el servicio con API Gateway](#exponer-el-servicio-con-api-gateway)
-- [Publicar el servicio](#publicar-el-servicio)
-- [Entradas y salidas más complejas](#entradas-y-salidas-más-complejas)
-- [Limpieza de recursos](#limpieza-de-recursos)
+- [Description](#description)
+- [Project Structure](#project-structure)
+- [Requirements](#requirements)
+- [Build and Package](#build-and-package)
+- [Create the Lambda Function](#create-the-lambda-function)
+- [Expose the Service with API Gateway](#expose-the-service-with-api-gateway)
+- [Publish the Service](#publish-the-service)
+- [More Complex Inputs and Outputs](#more-complex-inputs-and-outputs)
+- [Clean Up Resources](#clean-up-resources)
 
-## Descripción
+## Description
 
-Este laboratorio muestra el flujo completo para publicar un servicio en AWS:
+This lab walks through the complete flow for publishing a service on AWS:
 
-1. Crear una clase que implemente el servicio deseado.
-2. Crear una función **Lambda** y subir las clases empaquetadas en un JAR.
-3. Configurar **API Gateway** para exponer la función como un servicio REST.
-4. Probar y publicar el servicio para que quede disponible por internet.
+1. Create a class that implements the desired service.
+2. Create a **Lambda** function and upload the classes packaged in a JAR.
+3. Configure **API Gateway** to expose the function as a REST service.
+4. Test and publish the service so it is available over the internet.
 
-## Estructura del proyecto
+## Project Structure
 
 ```
 services/
@@ -34,17 +34,17 @@ services/
     ├── main/java/co/edu/escuelaing
     │   ├── App.java
     │   └── services
-    │       ├── MathServices.java   # Función que calcula el cuadrado
-    │       ├── Handler.java        # Handler con POJOs de entrada/salida
-    │       ├── Peticion.java       # POJO de entrada (nombre, a, b)
-    │       └── Respuesta.java      # POJO de salida (mensaje, suma)
+    │       ├── MathServices.java   # Function that calculates the square
+    │       ├── Handler.java        # Handler with input/output POJOs
+    │       ├── Peticion.java       # Input POJO (nombre, a, b)
+    │       └── Respuesta.java      # Output POJO (mensaje, suma)
     └── test/java/co/edu/escuelaing
         └── AppTest.java
 ```
 
 ### `MathServices.java`
 
-Función sencilla que recibe un entero y devuelve su cuadrado. No tiene dependencias adicionales:
+A simple function that receives an integer and returns its square, with no extra dependencies:
 
 ```java
 package co.edu.escuelaing.services;
@@ -57,9 +57,9 @@ public class MathServices {
 }
 ```
 
-### Entradas y salidas más complejas
+### More complex inputs and outputs
 
-Para ilustrar el manejo de objetos JSON, el proyecto incluye el handler y sus POJOs:
+To illustrate handling JSON objects, the project includes a handler and its POJOs:
 
 ```java
 public class Handler {
@@ -72,112 +72,112 @@ public class Handler {
 }
 ```
 
-- `Peticion` (entrada): campos `nombre` (String), `a` y `b` (int).
-- `Respuesta` (salida): campos `mensaje` (String) y `suma` (int).
+- `Peticion` (input): fields `nombre` (String), `a`, and `b` (int).
+- `Respuesta` (output): fields `mensaje` (String) and `suma` (int).
 
-AWS Lambda serializa y deserializa automáticamente el JSON de entrada/salida según el tipo POJO definido.
+AWS Lambda automatically serializes and deserializes the JSON input/output according to the defined POJO type.
 
-## Requisitos
+## Requirements
 
-- Java (el proyecto compila con `maven.compiler.release` 21).
+- Java (the project compiles with `maven.compiler.release` 21).
 - [Maven](https://maven.apache.org/).
-- Una cuenta de AWS (en AWS Academy se usa el rol `LabRole`).
+- An AWS account (in AWS Academy, the `LabRole` role is used).
 
-## Compilar y empaquetar
+## Build and Package
 
 ```bash
 mvn package
 ```
 
-El JAR resultante (por ejemplo `target/services-1.0-SNAPSHOT.jar`) es el que se sube a la función Lambda. El proyecto usa el `maven-shade-plugin` para generar un JAR autocontenido.
+The resulting JAR (for example `target/services-1.0-SNAPSHOT.jar`) is the one uploaded to the Lambda function. The project uses the `maven-shade-plugin` to generate a self-contained JAR.
 
-## Crear la función Lambda
+## Create the Lambda Function
 
-1. En la consola de AWS, abre el servicio **Lambda**.
-2. Haz clic en **Create function** y selecciona **Author from scratch**.
-3. Asigna un nombre a la función (por ejemplo `square`).
-4. Selecciona **Java** como runtime.
-5. En **Permissions**, elige *Use an existing role* y selecciona el rol de ejecución (en AWS Academy, `LabRole`). Si no existe, crea uno o deja que AWS lo cree automáticamente.
-6. En **Code**, sube el JAR generado.
-7. En el campo **Handler**, escribe la clase y el método en el formato:
+1. In the AWS console, open the **Lambda** service.
+2. Click **Create function** and select **Author from scratch**.
+3. Give the function a name (for example `square`).
+4. Select **Java** as the runtime.
+5. Under **Permissions**, choose *Use an existing role* and select the execution role (in AWS Academy, `LabRole`). If it does not exist, create one or let AWS create it automatically.
+6. In **Code**, upload the generated JAR.
+7. In the **Handler** field, enter the class and method in this format:
 
    ```
-   {nombre completo de la clase}::{método}
+   {fully qualified class name}::{method name}
    ```
 
-   Por ejemplo:
+   For example:
 
    ```
    co.edu.escuelaing.services.MathServices::square
    ```
 
-8. Haz clic en **Save**.
+8. Click **Save**.
 
-### Probar la función
+### Test the function
 
-1. Arriba, abre **Select a test event** → **Configure test events**.
-2. Asigna un nombre al evento (por ejemplo `testSquare`).
-3. Borra el JSON mostrado y escribe únicamente el número `5`.
-4. Haz clic en **Create** y luego en **Test**.
+1. At the top, open **Select a test event** → **Configure test events**.
+2. Give the event a name (for example `testSquare`).
+3. Delete the JSON shown and enter only the number `5`.
+4. Click **Create** and then **Test**.
 
-> Observa que la función se probó con el valor único `5`, no con un objeto JSON. Esta distinción importa al mapear la entrada en el siguiente paso.
+> Note that the function is tested with the single value `5`, not with a JSON object. This distinction matters when mapping the input in the next step.
 
-## Exponer el servicio con API Gateway
+## Expose the Service with API Gateway
 
-1. Abre el servicio **API Gateway**.
-2. Haz clic en **Getting Started**.
-3. Selecciona **REST API** y **New API**.
-4. Asigna un nombre a la API (por ejemplo `mathServices`).
-5. Selecciona **Regional** como tipo de endpoint.
+1. Open the **API Gateway** service.
+2. Click **Getting Started**.
+3. Select **REST API** and **New API**.
+4. Give the API a name (for example `mathServices`).
+5. Select **Regional** as the endpoint type.
 
-### Crear el método GET
+### Create the GET method
 
-1. En la API `mathServices`, abre el menú **Actions** junto a *Resources* y selecciona **Create Method**.
-2. Selecciona **GET** y confirma.
-3. En el campo **Lambda Function**, escribe el nombre de la función creada y guarda.
+1. In the `mathServices` API, open the **Actions** menu next to *Resources* and select **Create Method**.
+2. Select **GET** and confirm.
+3. In the **Lambda Function** field, enter the name of the function you created and save.
 
-### Configurar la petición y el mapeo
+### Configure the request and mapping
 
-1. Haz clic en **Method Request** y agrega un parámetro llamado `value` en *URL Query String Parameters*.
-2. Regresa a **Method Execution** y abre **Integration Request**.
-3. En *URL Query String Parameters*, crea un parámetro llamado `value` mapeado a:
+1. Click **Method Request** and add a parameter named `value` under *URL Query String Parameters*.
+2. Go back to **Method Execution** and open **Integration Request**.
+3. Under *URL Query String Parameters*, create a parameter named `value` mapped to:
 
    ```
    method.request.querystring.value
    ```
 
-4. Configura una **mapping template** para indicar cómo se pasan los parámetros a la función Lambda.
+4. Configure a **mapping template** to specify how parameters are passed to the Lambda function.
 
-> Muchas opciones por defecto y ejemplos en línea pasan los parámetros dentro de un objeto JSON. Para este laboratorio, solo se pasa un número.
+> Many default options and online examples pass parameters inside a JSON object. For this lab, only a number is passed.
 
-Para pasar parámetros reales, usa en la plantilla de mapeo:
+To pass real parameters, use the following in the mapping template:
 
 ```
 $input.params("value")
 ```
 
-### Probar el método
+### Test the method
 
-1. Regresa a la configuración del método.
-2. Abre **Test** y ejecútalo.
-3. Incluye un parámetro `value` con un entero. Si lo omites, se reportará un error.
+1. Go back to the method configuration.
+2. Open **Test** and run it.
+3. Include a `value` parameter with an integer. If you omit it, an error is reported.
 
-## Publicar el servicio
+## Publish the Service
 
-1. Abre el menú **Actions** y selecciona **Deploy API**.
-2. Selecciona **[New Stage]** y asigna un nombre (por ejemplo `Beta`). Aquí también se pueden gestionar otros entornos (pruebas, producción).
+1. Open the **Actions** menu and select **Deploy API**.
+2. Select **[New Stage]** and give it a name (for example `Beta`). Other stages (such as testing and production) can also be managed here.
 
-La URL que aparece arriba permite invocar el servicio. Por ejemplo:
+The URL shown at the top lets you invoke the service. For example:
 
 ```
 https://24uiyf4bn6.execute-api.us-east-1.amazonaws.com/Beta?value=14
 ```
 
-## Limpieza de recursos
+## Clean Up Resources
 
-Recuerda eliminar la función Lambda y la API al terminar para evitar cargos innecesarios.
+Remember to delete the Lambda function and the API when you are done to avoid unnecessary charges.
 
-## Referencias
+## References
 
 - [API Gateway Mapping Template Reference](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html)
 - [aws-lambda-java-events](https://github.com/aws/aws-lambda-java-libs)
